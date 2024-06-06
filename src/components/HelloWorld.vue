@@ -1,157 +1,126 @@
 <template>
-  <v-container class="fill-height">
-    <v-responsive
-      class="align-centerfill-height mx-auto"
-      max-width="900"
-    >
-      <v-img
-        class="mb-4"
-        height="150"
-        src="@/assets/logo.png"
-      />
+  <v-container>
+    <div>
+      <v-dialog v-model="dialog" max-width="600">
+        <template v-slot:activator="{ props: activatorProps }">
+          <v-btn class="text-none font-weight-regular" prepend-icon="mdi-view-grid-plus" text="Agregar tarea" variant="tonal" v-bind="activatorProps"></v-btn>
+        </template>
 
-      <div class="text-center">
-        <div class="text-body-2 font-weight-light mb-n1">Welcome to</div>
+        <v-card prepend-icon="mdi-checkbox-marked-circle-plus-outline" title="AGREGAR UNA NUEVA TAREA A LA LISTA">
+          <v-card-text>
+            <v-row dense>
+              <v-col cols="12">
+                <v-text-field label="Tarea" type="text" v-model="task" required></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field label="Fecha" type="date" v-model="date" required></v-text-field>
+              </v-col>
+              <v-col cols="12">
+                <v-text-field label="Hora" type="time" v-model="time" required></v-text-field>
+              </v-col>
+            </v-row>
+            <small class="text-caption text-medium-emphasis">Todos los campos son obligatorios</small>
+          </v-card-text>
 
-        <h1 class="text-h2 font-weight-bold">Vuetify</h1>
-      </div>
+          <v-divider></v-divider>
 
-      <div class="py-4" />
-
-      <v-row>
-        <v-col cols="12">
-          <v-card
-            class="py-4"
-            color="surface-variant"
-            image="https://cdn.vuetifyjs.com/docs/images/one/create/feature.png"
-            prepend-icon="mdi-rocket-launch-outline"
-            rounded="lg"
-            variant="outlined"
-          >
-            <template #image>
-              <v-img position="top right" />
-            </template>
-
-            <template #title>
-              <h2 class="text-h5 font-weight-bold">Get started</h2>
-            </template>
-
-            <template #subtitle>
-              <div class="text-subtitle-1">
-                Change this page by updating <v-kbd>{{ `<HelloWorld />` }}</v-kbd> in <v-kbd>components/HelloWorld.vue</v-kbd>.
-              </div>
-            </template>
-
-            <v-overlay
-              opacity=".12"
-              scrim="primary"
-              contained
-              model-value
-              persistent
-            />
-          </v-card>
-        </v-col>
-
-        <v-col cols="6">
-          <v-card
-            append-icon="mdi-open-in-new"
-            class="py-4"
-            color="surface-variant"
-            href="https://vuetifyjs.com/"
-            prepend-icon="mdi-text-box-outline"
-            rel="noopener noreferrer"
-            rounded="lg"
-            subtitle="Learn about all things Vuetify in our documentation."
-            target="_blank"
-            title="Documentation"
-            variant="text"
-          >
-            <v-overlay
-              opacity=".06"
-              scrim="primary"
-              contained
-              model-value
-              persistent
-            />
-          </v-card>
-        </v-col>
-
-        <v-col cols="6">
-          <v-card
-            append-icon="mdi-open-in-new"
-            class="py-4"
-            color="surface-variant"
-            href="https://vuetifyjs.com/introduction/why-vuetify/#feature-guides"
-            prepend-icon="mdi-star-circle-outline"
-            rel="noopener noreferrer"
-            rounded="lg"
-            subtitle="Explore available framework Features."
-            target="_blank"
-            title="Features"
-            variant="text"
-          >
-            <v-overlay
-              opacity=".06"
-              scrim="primary"
-              contained
-              model-value
-              persistent
-            />
-          </v-card>
-        </v-col>
-
-        <v-col cols="6">
-          <v-card
-            append-icon="mdi-open-in-new"
-            class="py-4"
-            color="surface-variant"
-            href="https://vuetifyjs.com/components/all"
-            prepend-icon="mdi-widgets-outline"
-            rel="noopener noreferrer"
-            rounded="lg"
-            subtitle="Discover components in the API Explorer."
-            target="_blank"
-            title="Components"
-            variant="text"
-          >
-            <v-overlay
-              opacity=".06"
-              scrim="primary"
-              contained
-              model-value
-              persistent
-            />
-          </v-card>
-        </v-col>
-
-        <v-col cols="6">
-          <v-card
-            append-icon="mdi-open-in-new"
-            class="py-4"
-            color="surface-variant"
-            href="https://discord.vuetifyjs.com"
-            prepend-icon="mdi-account-group-outline"
-            rel="noopener noreferrer"
-            rounded="lg"
-            subtitle="Connect with Vuetify developers."
-            target="_blank"
-            title="Community"
-            variant="text"
-          >
-            <v-overlay
-              opacity=".06"
-              scrim="primary"
-              contained
-              model-value
-              persistent
-            />
-          </v-card>
-        </v-col>
-      </v-row>
-    </v-responsive>
+          <v-card-actions>
+            <v-spacer></v-spacer>
+            <v-btn color="error" text="Cerrar" variant="plain" @click="dialog = false; reset()"></v-btn>
+            <v-btn color="success" text="Guardar" variant="tonal" @click="saveTask()"></v-btn>
+          </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </div>
+    <v-table fixed-header v-if="tasks.length > 0">
+      <thead>
+        <tr>
+          <th class="text-center">Actividad</th>
+          <th class="text-center">Fecha</th>
+          <th class="text-center">Hora</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="(row, index) in tasks" :key="index">
+          <td class="text-center">{{ row.task }}</td>
+          <td class="text-center">{{ formatDateToMX(row.date) }}</td>
+          <td class="text-center">{{ formatTimeToMXWithAmPm(row.time)}}</td>
+        </tr>
+      </tbody>
+    </v-table>
   </v-container>
 </template>
 
-<script setup>
-  //
+<script>
+  export default {
+    data: () => ({
+      dialog: false,
+      task: null,
+      date: null,
+      time: null,
+      tasks: []
+    }),
+    methods: {
+      reset() {
+        this.task = null,
+        this.date = null,
+        this.time = null
+      },
+      saveTask(){
+        let tmp = JSON.parse(localStorage.getItem('tasks')) || []
+        tmp.push({
+          task: this.task,
+          date: this.date,
+          time: this.time
+        })
+        localStorage.setItem('tasks', JSON.stringify(tmp))
+        this.tasks = JSON.parse(localStorage.getItem('tasks'))
+        this.dialog = false
+        this.reset()
+      },
+      formatTimeToMXWithAmPm(timeString) {
+        // Dividir la cadena de entrada en horas y minutos
+        let [hours, minutes] = timeString.split(':').map(Number);
+
+        // Crear una fecha con la hora proporcionada
+        let date = new Date();
+        date.setHours(hours, minutes, 0, 0); // Establecer horas y minutos
+
+        // Opciones para formatear la hora en formato de 12 horas con AM/PM
+        let options = {
+          hour: '2-digit',
+          minute: '2-digit',
+          second: '2-digit',
+          hour12: true // Esto asegura que se use el formato de 12 horas con AM/PM
+        };
+
+        // Obtener la hora formateada
+        let timeStringFormatted = date.toLocaleTimeString('es-MX', options);
+
+        return timeStringFormatted;
+      },
+      formatDateToMX(dateString) {
+        // Crear una fecha a partir de la cadena de entrada
+        let date = new Date(dateString);
+
+        // Opciones para formatear la fecha en formato de México
+        let options = {
+          day: '2-digit',
+          month: '2-digit',
+          year: 'numeric'
+        };
+
+        // Obtener la fecha formateada
+        let dateFormatted = date.toLocaleDateString('es-MX', options);
+
+        return dateFormatted;
+      }
+    },
+    created(){
+      if (!localStorage.getItem('tasks')) {
+        localStorage.setItem('tasks', JSON.stringify([]))
+      }
+      this.tasks = JSON.parse(localStorage.getItem('tasks'))
+    }
+  }
 </script>
